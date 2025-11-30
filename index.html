@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/style.css">
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+</head>
+
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+
+        function Square({ value, onClick }) {
+            return (
+                <button className="square" onClick={onClick}>
+                    {value}
+                </button>
+            );
+        }
+
+        function Board({ squares, onPlay, xIsNext }) {
+            const winner = calculateWinner(squares);
+            const status = winner
+                ? `Vencedor: ${winner}`
+                : `Próximo jogador: ${xIsNext ? "X" : "O"}`;
+
+            function handleClick(i) {
+                if (squares[i] || winner) return;
+
+                const nextSquares = squares.slice();
+                nextSquares[i] = xIsNext ? "X" : "O";
+                onPlay(nextSquares);
+            }
+
+            return (
+                <>
+                    <div className="status">{status}</div>
+
+                    <div className="board-row">
+                        {[0, 1, 2].map(i => (
+                            <Square key={i} value={squares[i]} onClick={() => handleClick(i)} />
+                        ))}
+                    </div>
+
+                    <div className="board-row">
+                        {[3, 4, 5].map(i => (
+                            <Square key={i} value={squares[i]} onClick={() => handleClick(i)} />
+                        ))}
+                    </div>
+
+                    <div className="board-row">
+                        {[6, 7, 8].map(i => (
+                            <Square key={i} value={squares[i]} onClick={() => handleClick(i)} />
+                        ))}
+                    </div>
+                </>
+            );
+        }
+
+        function Game() {
+            const initialBoard = Array(9).fill(null);
+
+            const [history, setHistory] = React.useState([initialBoard]);
+            const [currentMove, setCurrentMove] = React.useState(0);
+
+            const xIsNext = currentMove % 2 === 0;
+            const currentSquares = history[currentMove];
+
+            function handlePlay(nextSquares) {
+                const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+                setHistory(nextHistory);
+                setCurrentMove(nextHistory.length - 1);
+            }
+
+            function jumpTo(move) {
+                setCurrentMove(move);
+            }
+
+            function resetGame() {
+                setHistory([initialBoard]);
+                setCurrentMove(0);
+            }
+
+            return (
+                <div className="game-container">
+
+                    <div id="board-box" className="box">
+                        <h2>Jogo da Velha</h2>
+
+                        <Board
+                            squares={currentSquares}
+                            xIsNext={xIsNext}
+                            onPlay={handlePlay}
+                        />
+
+                        <button className="reset-btn" onClick={resetGame}>
+                            Reiniciar Jogo
+                        </button>
+                    </div>
+
+                    <div id="moves-box" className="box">
+                        <h2>Jogadas</h2>
+
+                        <div className="moves-container">
+
+                            {history.map((_, move) => {
+                                const desc =
+                                    move === 0 ? "Início do jogo" : `Ir para jogada #${move}`;
+
+                                return (
+                                    <button
+                                        key={move}
+                                        className="move-btn"
+                                        onClick={() => jumpTo(move)}
+                                    >
+                                        {desc}
+                                    </button>
+                                );
+                            })}
+
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function calculateWinner(squares) {
+            const lines = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6],
+            ];
+
+            for (let [a, b, c] of lines) {
+                if (squares[a] &&
+                    squares[a] === squares[b] &&
+                    squares[a] === squares[c]) {
+                    return squares[a];
+                }
+            }
+            return null;
+        }
+
+        ReactDOM.render(<Game />, document.getElementById("root"));
+    </script>
+
+</body>
+
+</html>
